@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>История цен</title>
+    <meta charset="utf-8">
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; }
+        .container { max-width: 1000px; margin: 0 auto; }
+        .price-item { border: 1px solid #ddd; padding: 10px; margin: 5px 0; }
+        .back-link { margin-bottom: 20px; display: inline-block; text-decoration: none; color: #007bff; }
+        .back-link:hover { text-decoration: underline; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f5f5f5; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="/" class="back-link">← К списку товаров</a>
+        <h1>История цен</h1>
+        
+        <div id="productInfo">
+            <h2>{{ product.name or 'Без названия' }}</h2>
+            <p><strong>Ссылка:</strong> {{ product.link }}</p>
+            <p><strong>ID товара:</strong> {{ product.id }}</p>
+        </div>
+        
+        <h3>История изменения цен</h3>
+        {% if price_history %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Дата</th>
+                    <th>Цена</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for price in price_history %}
+                <tr>
+                    <td>{{ price.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                    <td>{{ price.price }} ₽</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p>Нет данных о ценах</p>
+        {% endif %}
+    </div>
+</body>
+</html>

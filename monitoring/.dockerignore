@@ -1,0 +1,8 @@
+.env
+__pycache__/
+.gitignore
+.git/
+logs/
+venv/
+Задание практикантам.docx
+uploads/

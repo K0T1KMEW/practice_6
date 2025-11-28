@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Управление товарами</title>
+    <meta charset="utf-8">
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; }
+        .container { max-width: 1000px; margin: 0 auto; }
+        .product { border: 1px solid #ddd; padding: 15px; margin: 10px 0; }
+        .add-form { margin: 20px 0; }
+        input[type="text"] { width: 400px; padding: 8px; }
+        button { padding: 8px 15px; margin-left: 10px; cursor: pointer; }
+        .actions { margin-top: 10px; }
+        .current-price { font-weight: bold; color: #28a745; font-size: 1.1em; }
+        .loading { color: #6c757d; }
+        .nav { margin: 20px 0; }
+        .nav a { margin-right: 15px; text-decoration: none; color: #007bff; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        
+        <div class="add-form">
+            <h3>Добавить товар для отслеживания</h3>
+            <input type="text" id="productLink" placeholder="Введите ссылку на товар">
+            <button onclick="addProduct()">Добавить</button>
+        </div>
+        
+        <h3>Отслеживаемые товары</h3>
+        <div id="productsList">
+            {% for product in products %}
+            <div class="product">
+                <h4>{{ product.name or 'Без названия' }}</h4>
+                <p><strong>Ссылка:</strong> {{ product.link }}</p>
+                <p><strong>Текущая цена:</strong> <span class="current-price loading" id="price-{{ product.id }}">Загрузка...</span></p>
+                <p><strong>ID:</strong> {{ product.id }}</p>
+                <p><strong>Рейтинг:</strong> 
+                    {% if product.rating %}
+                        {{ product.rating }} ⭐
+                    {% else %}
+                        Нет данных
+                    {% endif %}
+                </p>
+                <div class="actions">
+                    <button onclick="viewPriceHistory({{ product.id }})">История цен</button>
+                    <button onclick="deleteProduct({{ product.id }})" style="background: #dc3545; color: white;">Удалить</button>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <script>
+        async function addProduct() {
+            const link = document.getElementById('productLink').value;
+            if (!link) {
+                alert('Введите ссылку на товар');
+                return;
+            }
+            
+            try {
+                const response = await fetch('/products', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ link: link })
+                });
+                
+                const result = await response.json();
+                if (!result.error) {
+                    location.reload();
+                } else {
+                    alert('Ошибка: ' + result.message);
+                }
+            } catch (error) {
+                console.error('Ошибка добавления товара:', error);
+                alert('Ошибка при добавлении товара');
+            }
+        }
+        
+        async function deleteProduct(productId) {
+            if (!confirm('Удалить товар?')) return;
+            
+            try {
+                const response = await fetch('/products/' + productId, {
+                    method: 'DELETE'
+                });
+                
+                const result = await response.json();
+                if (!result.error) {
+                    location.reload();
+                }
+            } catch (error) {
+                console.error('Ошибка удаления товара:', error);
+                alert('Ошибка при удалении товара');
+            }
+        }
+        
+        function viewPriceHistory(productId) {
+            // Переход на страницу истории цен в текущей вкладке
+            window.location.href = '/products/' + productId + '/prices-page';
+        }
+
+        // Функция для загрузки текущей цены товара
+        async function loadCurrentPrice(productId) {
+            try {
+                const response = await fetch(`/products/${productId}/prices`);
+                const result = await response.json();
+                
+                if (!result.error && result.payload && result.payload.length > 0) {
+                    // Берем последнюю цену (первую в массиве, так как они отсортированы от новых к старым)
+                    const currentPrice = result.payload[0].price;
+                    const priceElement = document.getElementById(`price-${productId}`);
+                    priceElement.textContent = `${currentPrice} ₽`;
+                    priceElement.classList.remove('loading');
+                } else {
+                    const priceElement = document.getElementById(`price-${productId}`);
+                    priceElement.textContent = 'Нет данных';
+                    priceElement.classList.remove('loading');
+                }
+            } catch (error) {
+                console.error('Ошибка загрузки цены:', error);
+                const priceElement = document.getElementById(`price-${productId}`);
+                priceElement.textContent = 'Ошибка загрузки';
+                priceElement.classList.remove('loading');
+            }
+        }
+
+        // Загружаем текущие цены для всех товаров при загрузке страницы
+        document.addEventListener('DOMContentLoaded', function() {
+            {% for product in products %}
+            loadCurrentPrice({{ product.id }});
+            {% endfor %}
+        });
+    </script>
+</body>
+</html>

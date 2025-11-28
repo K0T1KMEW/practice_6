@@ -1,0 +1,11 @@
+pydantic
+uvicorn
+sqlalchemy
+asyncpg
+fastapi
+pydantic-settings
+jinja2
+apscheduler
+bs4
+asyncio
+aiohttp

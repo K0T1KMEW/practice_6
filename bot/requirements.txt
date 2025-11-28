@@ -1,0 +1,9 @@
+aiogram
+asyncio
+apscheduler
+bs4
+pydantic-settings
+pydantic
+asyncpg
+sqlalchemy
+aiohttp
